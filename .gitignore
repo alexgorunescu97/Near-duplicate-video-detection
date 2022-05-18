@@ -4,3 +4,7 @@ datasets/
 __pycache__/
 /.spyproject
 results/
+/vgg.npy
+dataset/
+/results.json
+/results1.json
