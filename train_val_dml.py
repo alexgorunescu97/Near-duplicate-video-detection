@@ -270,11 +270,11 @@ if __name__ == '__main__':
                 line_split = line.split(';')
                 layers_str, dropout_rate_1, dropout_rate_2, learning_rate, batch_size, weight_decay, gamma, reg = line_split[0], float(line_split[1]), float(line_split[2]), float(line_split[3]), int(line_split[4]), float(line_split[5]), float(line_split[6]), line_split[7] 
                 
-                model_path = os.path.join(args['model_path'], f'model_dev_{i + 445}')
+                model_path = os.path.join(args['model_path'], f'model_dev_{i + 460}')
                 os.mkdir(model_path)
             
                 model = DNN(dataset.shape[1],
-                            os.path.join(model_path, f'model_dev_{i + 445}'),
+                            os.path.join(model_path, f'model_dev_{i + 460}'),
                             hidden_layer_sizes=[int(l) for l in layers_str.split(',') if l],
                             learning_rate=learning_rate,
                             weight_decay=weight_decay,
@@ -286,12 +286,12 @@ if __name__ == '__main__':
                 
                 print(f'Max validation accuracy: {max_val_acc[0]} at epoch {max_val_acc[1]}')
                 
-                results_path = os.path.join(args['validation_results'], f'results_dev_{i + 445}_{max_val_acc[1] + 1}')
+                results_path = os.path.join(args['validation_results'], f'results_dev_{i + 460}_{max_val_acc[1] + 1}')
                 os.mkdir(results_path)
                 r = open(os.path.join(results_path, 'results.txt'), 'a')
                 r.write('Mean Final Accuracy: {0:.2f}%'.format(max_val_acc[0]))
-                r.write(f'\n{i + 445}: {feature_type} layers={layers_str}; epochs={max_val_acc[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_1}_{dropout_rate_2};{min_val_loss}')
-                g.write(f'\n{i + 445}: {feature_type} layers={layers_str}; epochs={max_val_acc[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_2}_{dropout_rate_2};{min_val_loss}')
+                r.write(f'\n{i + 460}: {feature_type} layers={layers_str}; epochs={max_val_acc[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_1}_{dropout_rate_2};{min_val_loss}')
+                g.write(f'\n{i + 460}: {feature_type} layers={layers_str}; epochs={max_val_acc[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_2}_{dropout_rate_2};{min_val_loss}')
                 r.close()
                 
                 plot_train_val_metrics(train_acc, train_loss, val_acc, val_loss, np.arange(epochs + 1), results_path)
