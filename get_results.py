@@ -15,7 +15,7 @@ for root, dirs, files in os.walk('results/results_vgg'):
         with open(os.path.join(root, files[-1]), 'r') as f:
             lines = f.readlines()
             curr_acc = float(lines[0][20: -1].split('%')[0])
-            res.append([curr_acc, n[2]])
+            res.append([curr_acc, n[-2]])
             if curr_acc > max_acc:
                 max_acc = curr_acc
                 conf_n = root
