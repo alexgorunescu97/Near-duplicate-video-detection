@@ -8,3 +8,6 @@ results/
 dataset/
 /results.json
 /results1.json
+output_data/
+/fivr_triplets.npy
+/fivr_triplets_full.npy

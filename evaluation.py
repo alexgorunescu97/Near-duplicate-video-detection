@@ -67,7 +67,7 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
 
     print('Loading data...')
-    cc_dataset = pk.load(open('datasets/cc_web_video.pickle', 'rb'))
+    cc_dataset = pk.load(open('output_data/datasets/cc_web_video.pickle', 'rb'))
     cc_features = load_features(args['evaluation_set'])
 
     print('Loading model...')
