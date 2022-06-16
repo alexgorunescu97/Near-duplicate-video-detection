@@ -234,34 +234,13 @@ if __name__ == '__main__':
         raise Exception('--layers argument is in wrong format. Specify the number '
                         'of neurons in each layer separated by a comma \',\'')
         
-    
-    if args['split_validation'] == 'y':
-        
-        accuracy = np.zeros(N_TRAIN_VAL_ITERATIONS)
 
-        for i in range(N_TRAIN_VAL_ITERATIONS):
-    
-            tf.keras.backend.clear_session()
-    
-            model = DNN(dataset.shape[1],
-                        args['model_path'],
-                        hidden_layer_sizes=layers,
-                        learning_rate=args['learning_rate'],
-                        weight_decay=args['weight_decay'],
-                        gamma=args['gamma'])
         
-            train_triplets_split, val_triplets_split = train_test_split(train_triplets, test_size=args['split'])
-            
-            train_dml_network(model, dataset, train_triplets_split, args['epochs'], args['batch_sz'])
-            accuracy[i], _ = validate_dml_network(model, dataset, val_triplets_split, args['batch_sz'])
-        
-        print('Mean Final Accuracy: {0:.2f}%'.format(np.mean(accuracy)))
-        
-    elif args['validation_triplets']:
+    if args['validation_triplets']:
         
         val_triplets = np.load(args['validation_triplets']).astype(np.int)
         
-        with open('hyperparameters.txt', 'r') as f, open('conf.txt', 'a') as g:
+        with open('hyperparameters.txt', 'r') as f:
             
             for i, line in enumerate(f.readlines()):
                 
@@ -270,11 +249,11 @@ if __name__ == '__main__':
                 line_split = line.split(';')
                 layers_str, dropout_rate_1, dropout_rate_2, learning_rate, batch_size, weight_decay, gamma, reg = line_split[0], float(line_split[1]), float(line_split[2]), float(line_split[3]), int(line_split[4]), float(line_split[5]), float(line_split[6]), line_split[7] 
                 
-                model_path = os.path.join(args['model_path'], f'model_dev_{i + 460}')
+                model_path = os.path.join(args['model_path'], f'model_dev_{i}')
                 os.mkdir(model_path)
             
                 model = DNN(dataset.shape[1],
-                            os.path.join(model_path, f'model_dev_{i + 460}'),
+                            os.path.join(model_path, f'model_dev_{i}'),
                             hidden_layer_sizes=[int(l) for l in layers_str.split(',') if l],
                             learning_rate=learning_rate,
                             weight_decay=weight_decay,
@@ -288,23 +267,7 @@ if __name__ == '__main__':
                 
                 results_path = os.path.join(args['validation_results'], f'results_dev_{i + 460}_{max_val_acc[1] + 1}')
                 os.mkdir(results_path)
-                r = open(os.path.join(results_path, 'results.txt'), 'a')
-                r.write('Mean Final Accuracy: {0:.2f}%'.format(max_val_acc[0]))
-                r.write(f'\n{i + 460}: {feature_type} layers={layers_str}; epochs={max_val_acc[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_1}_{dropout_rate_2};{min_val_loss}')
-                g.write(f'\n{i + 460}: {feature_type} layers={layers_str}; epochs={max_val_acc[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_2}_{dropout_rate_2};{min_val_loss}')
-                r.close()
                 
                 plot_train_val_metrics(train_acc, train_loss, val_acc, val_loss, np.arange(epochs + 1), results_path)
-    else:
-        batch_size = 512
-        model_path = os.path.join(args['model_path'], 'model_407')
-        model = DNN(dataset.shape[1],
-                    os.path.join(model_path, 'model_407'),
-                    hidden_layer_sizes=[1000,500,500],
-                    learning_rate=1e-5,
-                    weight_decay=1e-4,
-                    gamma=1,
-                    reg='l2')
-        
-        _ = train_dml_network(model, dataset, train_triplets, 23, batch_size, dropout_rate_1=0.5, dropout_rate_2=1)
+
         

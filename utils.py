@@ -155,7 +155,7 @@ def evaluate(ground_truth, index, queries, similarities, results_path, positive_
         ground_truth: the ground truth labels for each query
         similarities: the similarities of each query with the videos in the dataset
         index: list of video names
-        queris: list of queries,
+        queries: list of queries,
         results_path: path for storing results
         positive_labels: labels that are considered positives
         all_videos: indicator of whether all videos are considered for the evaluation
@@ -165,7 +165,8 @@ def evaluate(ground_truth, index, queries, similarities, results_path, positive_
         ps_curve: the values of the PR-curve
     """
     pr, mAP = [], 0.0
-    results_file = open(results_path, 'a')
+    if results_path is not None:
+        results_file = open(results_path, 'a')
     for query_set, labels in enumerate(ground_truth):
         i = 0.0
         ri = 0
@@ -181,12 +182,12 @@ def evaluate(ground_truth, index, queries, similarities, results_path, positive_
                     i += 1.0
                     s += i / ri
                     y_target[-1] = 1.0
-                elif i < n_positive_videos and not is_baseline:
+                elif i < n_positive_videos and not is_baseline and results_path is not None:
                     if video in labels and labels[video] not in positive_labels:
                         results_file.write(f'Negative video ({labels[video]}) labeled as positive ({"CC_WEB_VIDEOS*" if all_videos else "CC_WEB_VIDEOS"}): {index[video]} for query {index[queries[query_set]]}\n')
                     elif all_videos and video not in labels:
                         results_file.write(f'Video not in query_set labeled as positive(CC_WEB_VIDEOS*): {index[video]} for query {index[queries[query_set]]}\n')
-                elif ri >= n_positive_videos and not is_baseline:
+                elif ri >= n_positive_videos and not is_baseline and results_path is not None:
                     if video in labels and labels[video] in positive_labels:
                         results_file.write(f'Positive video (labels[video]) labeled as negative ({"CC_WEB_VIDEOS*" if all_videos else "CC_WEB_VIDEOS"}): {index[video]} for query {index[queries[query_set]]}\n')
 
@@ -199,6 +200,6 @@ def evaluate(ground_truth, index, queries, similarities, results_path, positive_
             idx = np.where((recall >= i*0.05))[0]
             p += [np.max(precision[idx])]
         pr += [p + [1.0]]
-
-    results_file.close()
+    if results_path is not None:
+        results_file.close()
     return mAP / len(ground_truth), np.mean(pr, axis=0)[::-1]

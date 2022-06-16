@@ -15,11 +15,13 @@ import json
 import argparse
 import numpy as np
 import scipy as sp
+from tqdm import tqdm
 
 from argparse import RawTextHelpFormatter
 from sklearn.metrics import pairwise_distances
+from model import DNN
 
-def get_similarities(feature_file, result_file, annotations_file='dataset/annotation_dev.json', model=None, features=None, dataset_ids='dataset/youtube_ids.txt', dataset=None, similarity_metric="euclidean"):
+def get_similarities(feature_file, result_file, annotations_file='dataset/annotation_dev.json', model=None, model_path=None, features=None, dataset_ids='dataset/youtube_ids.txt', dataset=None, similarity_metric="euclidean"):
     
     
     if features is None:
@@ -45,8 +47,17 @@ def get_similarities(feature_file, result_file, annotations_file='dataset/annota
     print('Extract video embeddings...')
     if model is not None:
         embeddings = model.embeddings(features)
-    else:
-        embeddings = features
+    elif model_path:
+        model = DNN(features.shape[1],
+                    model_path,
+                    load_model=True,
+                    trainable=False)
+        
+        embeddings = np.zeros((features.shape[0], model.embedding_dim))
+        for i, feature in enumerate(tqdm(features)):
+            
+            embedding = model.embeddings(np.reshape(feature, (-1, 4096)))
+            embeddings[i] = embedding
 
     assert embeddings.shape[0] == len(dataset), 'Number of videos in the dataset is no equal to the ' \
                                               'number of embeddding vectors provided'
@@ -85,6 +96,8 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--result_file',
                         required=True,
                         help='File where the results will be saved.')
+    parser.add_argument('-m', '--model_path', type=str,
+                        help='Path to load the trained DML model')
     parser.add_argument('-a', '--annotations_file',
                         default='dataset/annotation.json',
                         help='File that contains the video annotations of the FIVR-200K dataset')
@@ -99,6 +112,6 @@ if __name__ == "__main__":
                              'sklearn.metrics.pairwise_distances.html')
     args = parser.parse_args()
     
-    get_similarities(args.feature_file, args.result_file, annotations_file=args.annotations_file, dataset_ids=args.dataset_ids, similarity_metric=args.similarity_metric)
+    get_similarities(args.feature_file, args.result_file, annotations_file=args.annotations_file, model_path=args.model_path, dataset_ids=args.dataset_ids, similarity_metric=args.similarity_metric)
     
     

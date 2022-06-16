@@ -21,15 +21,18 @@ from future.utils import viewitems, lrange
 from sklearn.metrics import precision_recall_curve
 
 
-def plot_pr_curve(pr_curve):
+def plot_pr_curve(pr_curve_dml, pr_curve_base):
     """
       Function that plots the interpolated PR-curve.
       Args:
         pr_curve: the values of precision for each recall step
     """
+    
     plt.figure(figsize=(16, 9))
     plt.plot(np.arange(0.0, 1.05, 0.05),
-             pr_curve, color='r', marker='o', linewidth=3, markersize=10)
+             pr_curve_base, color='r', marker='o', linewidth=3, markersize=10)
+    plt.plot(np.arange(0.0, 1.05, 0.05),
+             pr_curve_dml, color='b', marker='o', linewidth=3, markersize=10)
     plt.grid(True, linestyle='dotted')
     plt.xlabel('Recall', color='k', fontsize=27)
     plt.ylabel('Precision', color='k', fontsize=27)
@@ -101,6 +104,8 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--result_file',
                         required=True,
                         help='File of where the results are stored. It must be in JSON format')
+    parser.add_argument('-rb', '--result_base',
+                        help='File of where the base results are stored. It must be in JSON format')
     parser.add_argument('-rl', '--relevant_labels',
                         default='ND,DS',
                         help='Labels of the videos that considered relevant depending on the retrieval task'
@@ -129,6 +134,10 @@ if __name__ == "__main__":
     with open(args.result_file, 'r') as f:
         if not args.quiet: print('Loading results from file:', args.result_file)
         results = json.load(f)
+        # load all the necessary files
+    with open(args.result_base, 'r') as f:
+            if not args.quiet: print('Loading base results from file:', args.result_base)
+            results_base = json.load(f)
     with open(args.annotations_file, 'r') as f:
         if not args.quiet: print('Loading annotations from file:', args.annotations_file)
         annotations = json.load(f)
@@ -136,12 +145,14 @@ if __name__ == "__main__":
     relevant_labels = args.relevant_labels.split(',')
 
     # run the evaluation process
+    mAP_base, pr_curve_base = evaluate(annotations, results_base, relevant_labels, dataset, args.quiet)
     mAP, pr_curve = evaluate(annotations, results, relevant_labels, dataset, args.quiet)
 
     # report the results
     print('==========================================')
     print('Total queries: {}\t\tmAP={:.4f}'.format(len(mAP), np.mean(mAP)))
-    if args.plot_pr_curve: plot_pr_curve(pr_curve)
+    print('Total queries: {}\t\tmAP_base={:.4f}'.format(len(mAP_base), np.mean(mAP_base)))
+    if args.plot_pr_curve: plot_pr_curve(pr_curve, pr_curve_base)
 
     # save the numeric values in a csv file
     if args.save_results:

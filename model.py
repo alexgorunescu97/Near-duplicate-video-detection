@@ -30,7 +30,6 @@ class DNN(object):
                  hidden_layer_sizes=None,
                  load_model=False,
                  trainable=True,
-                 learning_rate=1e-5,
                  weight_decay=5e-3,
                  gamma=1.0,
                  reg='l2'):
@@ -43,7 +42,6 @@ class DNN(object):
             model_path: path to store the trained model
             load_model: load of the model weight from the model_path
             trainable: indicator of whether it is training or evaluation phase
-            learning_rate: learning rate that weights are updated
             weight_decay: regularization parameter for weight decay
             gamma: margin parameter between positive-query and negative-query distance
             reg: regulizer type
@@ -55,6 +53,7 @@ class DNN(object):
         self.input = tf.placeholder(tf.float32, shape=(None, input_dimensions), name='input')
         self.dropout_rate_1 = tf.placeholder(tf.float32)
         self.dropout_rate_2 = tf.placeholder(tf.float32)
+        self.learning_rate = tf.placeholder(tf.float32)
         self.embedding_dim = None
         
         if reg == 'l2':
@@ -81,7 +80,7 @@ class DNN(object):
                     cost = loss + reg_term
                     tf.summary.scalar('cost', cost)
 
-                train = tf.train.AdamOptimizer(learning_rate).minimize(cost)
+                train = tf.train.AdamOptimizer(self.learning_rate).minimize(cost)
                 self.train_op = [train, cost, error]
 
             summary = tf.summary.merge_all()
@@ -185,7 +184,7 @@ class DNN(object):
         print('save model...')
         return self.saver.save(self.sess, self.path)
 
-    def train(self, X, dropout_rate_1, dropout_rate_2):
+    def train(self, X, dropout_rate_1, dropout_rate_2, learning_rate):
         """
           Training of the network with the provided triplets.
 
@@ -198,7 +197,7 @@ class DNN(object):
             cost: total cost
             error: number of triplets with positive loss
         """
-        return self.sess.run(self.train_op, feed_dict={self.input: X, self.dropout_rate_1: dropout_rate_1, self.dropout_rate_2: dropout_rate_2})
+        return self.sess.run(self.train_op, feed_dict={self.input: X, self.dropout_rate_1: dropout_rate_1, self.dropout_rate_2: dropout_rate_2, self.learning_rate: learning_rate})
 
     def test(self, X):
         """

@@ -51,7 +51,7 @@ def plot_train_val_metrics(train_loss, epochs, results_path):
         fig_loss.savefig(loss_fig_path)
         plt.close(fig_loss)
         
-def train_dml_network(model, features, triplets, epochs, batch_sz, ids=None, val_set_ind=None, val_set=None, dropout_rate_1=1, dropout_rate_2=1):
+def train_dml_network(model, features, triplets, epochs, batch_sz, learning_rate, ids=None, val_set_ind=None, val_set=None, dropout_rate_1=1, dropout_rate_2=1):
     """
       Function that handles the training process.
 
@@ -63,7 +63,7 @@ def train_dml_network(model, features, triplets, epochs, batch_sz, ids=None, val
         batch_sz: the batch size
     """
     
-    EARLY_STOPPING_LIMIT = 10
+    EARLY_STOPPING_LIMIT = 5
 
     print('\nStart of DML Training')
     print('=====================')
@@ -83,7 +83,7 @@ def train_dml_network(model, features, triplets, epochs, batch_sz, ids=None, val
             triplet_batch = triplets[j * batch_sz: (j + 1) * batch_sz]
             train_batch = features[triplet_batch.reshape(-1)]
 
-            _, loss, error = model.train(train_batch, dropout_rate_1, dropout_rate_2)
+            _, loss, error = model.train(train_batch, dropout_rate_1, dropout_rate_2, learning_rate)
             losses[j] = loss
 
             pbar.set_postfix(loss=loss, error='{0:.2f}%'.format(error))
@@ -208,7 +208,6 @@ if __name__ == '__main__':
             
     if args['validation_set']:
         
-        # load the ids of the query videos and the dataset videos
         with open(args["validation_set"], 'r') as f:
             val_set = json.load(f)
             
@@ -230,42 +229,26 @@ if __name__ == '__main__':
                 
                 line_split = line.split(';')
                 layers_str, dropout_rate_1, dropout_rate_2, learning_rate, batch_size, weight_decay, gamma, reg = line_split[0], float(line_split[1]), float(line_split[2]), float(line_split[3]), int(line_split[4]), float(line_split[5]), float(line_split[6]), line_split[7] 
-                
-                model_path = os.path.join(args['model_path'], f'model_dev_fivr_{i + 33}')
+
+                model_path = os.path.join(args['model_path'], f'model_dev_fivr_{i}')
+            
                 os.mkdir(model_path)
             
                 model = DNN(dataset.shape[1],
-                            os.path.join(model_path, f'model_dev_fivr_{i + 33}'),
+                            os.path.join(model_path, f'model_dev_fivr_{i}'),
                             hidden_layer_sizes=[int(l) for l in layers_str.split(',') if l],
-                            learning_rate=learning_rate,
                             weight_decay=weight_decay,
                             gamma=gamma,
                             reg=reg.strip())
                 
-                max_val_map, train_loss, epochs = train_dml_network(model, dataset, train_triplets, args['epochs'], batch_size, ids=ids, val_set_ind=val_set_ind, val_set=val_set, dropout_rate_1=dropout_rate_1, dropout_rate_2=dropout_rate_2)
+                max_val_map, train_loss, epochs = train_dml_network(model, dataset, train_triplets, args['epochs'], batch_size, learning_rate, ids=ids, val_set_ind=val_set_ind, val_set=val_set, dropout_rate_1=dropout_rate_1, dropout_rate_2=dropout_rate_2)
                 
                 
                 print(f'Max validation mAP: {max_val_map[0]} at epoch {max_val_map[1]}')
                 
-                results_path = os.path.join(args['validation_results'], f'results_dev_fivr_{i + 33}')
+                results_path = os.path.join(args['validation_results'], f'results_dev_fivr_{i}')
                 os.mkdir(results_path)
-                r = open(os.path.join(results_path, 'results.txt'), 'a')
-                r.write('Max validation mAP: {0:.2f}%'.format(max_val_map[0]))
-                r.write(f'\nfivr-{i + 33}: vgg layers={layers_str}; epochs={max_val_map[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_1}_{dropout_rate_2}')
-                g.write(f'\nfivr{i + 33}: vgg layers={layers_str}; epochs={max_val_map[1] + 1}; batch_size={batch_size};learning_rate={learning_rate};weight_decay={weight_decay};gamma={gamma};{reg.strip()}_reg;relu;drop_rate={dropout_rate_2}_{dropout_rate_2}')
-                r.close()
                 
                 plot_train_val_metrics(train_loss, np.arange(epochs + 1), results_path)
-    else:
-        batch_size = 2048
-        model_path = os.path.join(args['model_path'], 'model_full')
-        model = DNN(dataset.shape[1],
-                    os.path.join(model_path, 'model_full'),
-                    hidden_layer_sizes=[2000,1000,1000],
-                    learning_rate=1e-5,
-                    weight_decay=1e-5,
-                    gamma=1,
-                    reg='l2')
-        
-        _ = train_dml_network(model, dataset, train_triplets, 1, batch_size, dropout_rate_1=1, dropout_rate_2=1)
+
         

@@ -1,2 +1,0 @@
-Max acc 97.28 at conf 99
-99: googlenet layers=250,120,60; epochs=17; batch_size=512;learning_rate=0.0001;weight_decay=1e-06;gamma=1.0;l1_reg
