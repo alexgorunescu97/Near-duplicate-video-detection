@@ -35,7 +35,7 @@ from tqdm import tqdm
 from future.utils import lrange
 from multiprocessing import Pool
 from utils.cnn_utils import load_video
-from utils import normalize
+from utils.dnn_utils import normalize
 from scipy.spatial.distance import cdist
 from models.dnn_model import DNN
 
@@ -142,6 +142,8 @@ if __name__ == '__main__':
                         help='List of videos to extract features')
     parser.add_argument('-cnn', '--cnn_model', type=str,
                         help='Path to the .ckpt file of the pre-trained CNN model.')
+    parser.add_argument('-q', '--queries', type=str,
+                        help='Query indices')
     parser.add_argument('-dnn', '--dnn_model', type=str,
                         help='Path to the .ckpt file of the pre-trained DNN model.')
     parser.add_argument('-c', '--cores', type=int, default=8,
@@ -178,7 +180,9 @@ if __name__ == '__main__':
     
     video_info = get_video_info(videos, video_frames)
     
-    similarities = get_similarities_dict([0, 3], embeddings, video_info)
+    queries = [int(q) for q in args['queries'].split(',')]
+    
+    similarities = get_similarities_dict(queries, embeddings, video_info)
     
     pio.renderers.default="browser"
     
