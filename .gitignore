@@ -1,4 +1,4 @@
-models/
+model_files/
 output_data/
 datasets/
 __pycache__/
@@ -7,6 +7,8 @@ results/
 /vgg.npy
 dataset/
 output_data/
+/sim.json
+/vgg_16.ckpt
 /cc_vgg_triplets.npy
 /cc_googlenet_triplets.npy
 /fivr_triplets.npy

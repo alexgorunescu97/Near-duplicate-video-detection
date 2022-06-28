@@ -1,0 +1,6 @@
+./videos/obama_query.mp4
+./videos/obama_semi_duplicat.mp4
+./videos/obama_diferit.mp4
+./videos/maradona_query.flv
+./videos/maradona_semi_duplicat.mp4
+./videos/maradona_diferit.mp4
